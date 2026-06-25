@@ -50,7 +50,7 @@ function fueler.handle_movement_result(ok, err, ctx)
         return "retry"
     end
 
-    local manager_id = ctx.manager_id
+    local manager_id = ctx and ctx.manager_id
     local current_coordinates = locator.get_current_coordinates()
     local desired = { ["minecraft:coal"] = 64 }
 
@@ -59,12 +59,17 @@ function fueler.handle_movement_result(ok, err, ctx)
     end
 
     printer.print_info("Requesting fuel...")
-    local supply_turtle_id = wireless.resupply.request(
+    wireless.resupply.request(
         manager_id,
         current_coordinates,
         desired)
+    local arrived_msg = wireless.resupply.await_arrived()
+    if not arrived_msg then
+        return nil, errors.NO_FUEL
+    end
+
     inventory.drop_slots(1, 1, "up")
-    wireless.resupply.signal_ready(supply_turtle_id)
+    wireless.resupply.ready(arrived_msg._sender)
     wireless.resupply.await_done()
 
     local slot = inventory.find_item("minecraft:coal")

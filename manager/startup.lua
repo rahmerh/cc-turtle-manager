@@ -150,7 +150,9 @@ local function mark_stale()
                 local updated = turtle_store:update(k, {
                     ["metadata.status"] = new_status
                 })
-                display:add_or_update_turtle(k, updated)
+                if display then
+                    display:add_or_update_turtle(k, updated)
+                end
             end
 
             ::continue::

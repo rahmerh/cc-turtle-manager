@@ -33,7 +33,7 @@ function fluid_fill.accept(receiver, job_id)
     }
     local payload = core.create_payload(fluid_fill.operations.accepted, data)
 
-    core.send(receiver, payload, core.protocols.pickup)
+    core.send(receiver, payload, core.protocols.fluid_fill)
 end
 
 return fluid_fill
