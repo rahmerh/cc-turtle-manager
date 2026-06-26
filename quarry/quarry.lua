@@ -8,6 +8,26 @@ local scanner   = require("lib.scanner")
 
 local quarry    = {}
 
+local function offset_coordinates(coordinates, direction)
+    local result = {
+        x = coordinates.x,
+        y = coordinates.y,
+        z = coordinates.z,
+    }
+
+    if direction == "north" then
+        result.z = result.z - 1
+    elseif direction == "south" then
+        result.z = result.z + 1
+    elseif direction == "east" then
+        result.x = result.x + 1
+    elseif direction == "west" then
+        result.x = result.x - 1
+    end
+
+    return result
+end
+
 function quarry.get_row_direction_for_layer(width, layer)
     if width % 2 == 1 then
         return (layer % 2 == 0) and "south" or "north"
@@ -187,7 +207,7 @@ function quarry.unload(manager_id)
     movement.move_down()
 end
 
-function quarry.mine_layer(layer, boundaries, start_from_row, on_row_done, manager_id, fluid_tracker)
+function quarry.mine_layer(layer, boundaries, start_from_row, on_row_done, manager_id)
     local direction = quarry.get_row_direction_for_layer(boundaries.width, layer)
     local movement_context = { dig = true, manager_id = manager_id }
 
@@ -208,22 +228,9 @@ function quarry.mine_layer(layer, boundaries, start_from_row, on_row_done, manag
         local face = (start_from_row % 2 == 0) and direction or movement.opposite_of(direction)
         movement.turn_to_direction(face)
 
-        if fluid_tracker then
-            local fluid_detected = scanner.is_fluid("up") or scanner.is_fluid("down")
-
-            if fluid_detected then
-                fluid_tracker:add(movement.get_current_coordinates())
-            end
-        end
-
         miner.mine_up(); miner.mine_down()
         for _ = 1, length do
             local ok, err = miner.mine()
-
-            -- if fluid_tracker then
-            --     print("forward")
-            --     fluid_detected = scanner.is_fluid("forward")
-            -- end
 
             if not ok and err then
                 printer.print_error(err); return false, err
@@ -232,17 +239,8 @@ function quarry.mine_layer(layer, boundaries, start_from_row, on_row_done, manag
             movement.move_forward(movement_context)
             miner.mine_up(); miner.mine_down()
 
-            local fluid_detected
-            if fluid_tracker then
-                fluid_detected = scanner.is_fluid("up") or scanner.is_fluid("down")
-            end
-
             if inventory.are_all_slots_full() then
                 quarry.unload(manager_id)
-            end
-
-            if fluid_detected then
-                fluid_tracker:add(movement.get_current_coordinates())
             end
         end
 

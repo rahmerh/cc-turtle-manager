@@ -12,7 +12,6 @@ printer.print_info("Booting runner #" .. os.getComputerID())
 local task_handlers = {
     pickup = require("tasks.pickup"),
     resupply = require("tasks.resupply"),
-    fluid_fill = require("tasks.fluid_fill")
 }
 
 if not fs.exists("runner.conf") then
@@ -110,24 +109,6 @@ wireless.router.register_handler(
 
         wireless.resupply.accept(sender, m.id)
         printer.print_info(("[%s] Queued task 'resupply'"):format(m.id))
-    end)
-
-wireless.router.register_handler(
-    wireless.protocols.fluid_fill,
-    wireless.fluid_fill.operations.assign,
-    function(sender, m)
-        local task = {
-            job_id = m.id,
-            task_type = "fluid_fill",
-            fluid_columns = m.data.fluid_columns,
-            requested_by = m.data.requested_by,
-            request_id = m.data.request_id,
-        }
-
-        task_queue:enqueue(task)
-
-        wireless.fluid_fill.accept(sender, m.id)
-        printer.print_info(("[%s] Queued task 'fluid fill'"):format(m.id))
     end)
 
 wireless.router.register_handler(

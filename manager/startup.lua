@@ -11,7 +11,6 @@ local string_util = require("lib.string_util")
 local handlers = {
     dispatch_pickup = require("handlers.dispatch_pickup"),
     dispatch_resupply = require("handlers.dispatch_resupply"),
-    dispatch_fluid_fill = require("handlers.dispatch_fluid_fill"),
 }
 
 local turtle_store = TurtleStore.new()
@@ -91,13 +90,6 @@ wireless.router.register_handler(
     wireless.resupply.operations.request,
     function(sender, msg)
         handlers.dispatch_resupply(sender, msg, turtle_store)
-    end)
-
-wireless.router.register_handler(
-    wireless.protocols.fluid_fill,
-    wireless.fluid_fill.operations.report,
-    function(sender, msg)
-        handlers.dispatch_fluid_fill(sender, msg, turtle_store)
     end)
 
 wireless.router.register_handler(

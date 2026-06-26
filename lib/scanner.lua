@@ -3,11 +3,6 @@ local list = require("lib.list")
 
 local scanner = {}
 
-local fluids = {
-    "minecraft:water",
-    "minecraft:lava",
-}
-
 function scanner.is_block(block_type, direction)
     local ok, info
     if direction == "up" then
@@ -40,25 +35,6 @@ function scanner.is_free(direction)
     end
 
     return not detected
-end
-
-function scanner.is_fluid(direction)
-    local ok, info
-    if direction == "up" then
-        ok, info = turtle.inspectUp()
-    elseif direction == "down" then
-        ok, info = turtle.inspectDown()
-    elseif direction == "forward" then
-        ok, info = turtle.inspect()
-    else
-        return nil, errors.INVALID_DIRECTION
-    end
-
-    if ok then
-        return list.contains(fluids, info.name)
-    end
-
-    return false
 end
 
 return scanner

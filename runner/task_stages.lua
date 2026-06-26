@@ -4,7 +4,6 @@ local task_stages = {
     to_unloading = "Moving to unloading",
     to_supply = "Moving to supplies",
     resupplying = "Resupplying",
-    filling_fluid = "Filling fluid on layer"
 }
 
 return task_stages

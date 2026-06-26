@@ -11,6 +11,5 @@ return {
     turtle_commands = require("wireless.services.turtle-command"),
     pickup = require("wireless.services.pickup"),
     resupply = require("wireless.services.resupply"),
-    fluid_fill = require("wireless.services.fluid-fill"),
     settings = require("wireless.services.settings"),
 }

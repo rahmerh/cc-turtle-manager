@@ -39,7 +39,6 @@ A runner is a very general helper role which assists others. It can do the follo
 
 - `pickup` picks up a chest located at the received coordinates. Will pick it up and unload at configured "unloading" chest.
 - `resupply` receives a list of required items, retrieves them and brings them to the requesting turtle.
-- `fluid_fill` (TODO) receives a list of coordinates to fill up and drain fluids. Used by quarries.
 
 It has 2 chests that are important, the unloading and resupply chest. 
 The unloading chest is where it dumps it's items and the resupply chest is where it gets it's supplies.
@@ -62,7 +61,6 @@ A runner will always pause on top of the unloading chest, waiting for it's next 
 
 ## TODO
 
-- Quarry fluid fill
 - Dashboard
   - Edit quarry settings page.
   - Map/radar page.
@@ -79,3 +77,10 @@ A runner will always pause on top of the unloading chest, waiting for it's next 
 - More roles:
   - Logger (tree farm)
   - Farmer (generic crop farmer)
+
+## Development
+
+To work around the github cache there's a local setup script set up. 
+Simply provide the role and computer id and it'll symlink in all required lua files.
+Minecraft disallows symlinks but you can work around this by setting this:
+`printf '[prefix]/home/bas/projects/cc-turtle-manager/' > ~/.minecraft/allowed_symlinks.txt`

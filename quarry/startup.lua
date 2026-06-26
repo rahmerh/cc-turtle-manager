@@ -13,7 +13,6 @@ local movement = require("movement")
 
 local inventory = require("lib.inventory")
 local miner = require("lib.miner")
-local FluidTracker = require("lib.fluid-tracker")
 
 printer.print_info("Booting quarry #" .. os.getComputerID())
 
@@ -216,9 +215,6 @@ local function main()
         movement.pause()
     end
 
-    local track_fluids = settings.fill_quarry_fluids
-    local fluid_tracker = FluidTracker.new()
-
     printer.print_info("Quarry #" .. os.getComputerID() .. " in progress...")
 
     local row_done_callback = function()
@@ -232,12 +228,7 @@ local function main()
             boundaries,
             job.current_row(),
             row_done_callback,
-            manager_id,
-            fluid_tracker)
-
-        if track_fluids and fluid_tracker:any() then
-            wireless.fluid_fill.report(manager_id, fluid_tracker:drain())
-        end
+            manager_id)
 
         job.next_layer()
     end

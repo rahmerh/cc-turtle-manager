@@ -12,12 +12,10 @@ function Settings.new(settings_file)
         _path = settings_file or "settings.conf",
         _settings = {
             -- Default values
-            auto_recover_quarries = false,
-            fill_quarry_fluids = false,
+            auto_recover_quarries = true,
         },
         keys = {
             auto_recover_quarries = "auto_recover_quarries",
-            fill_quarry_fluids = "fill_quarry_fluids",
         }
     }, Settings)
 

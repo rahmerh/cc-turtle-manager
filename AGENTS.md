@@ -8,7 +8,7 @@ This repository contains Lua scripts for CC: Tweaked computers and turtles. Trea
 - `local-bootstrap.sh` symlinks this checkout into a local Minecraft save for development.
 - `manager/` is the central computer role. It owns dispatching, settings, turtle state, and monitor UI startup.
 - `quarry/` is the quarry turtle role.
-- `runner/` is the helper turtle role for pickup, resupply, and fluid-fill work.
+- `runner/` is the helper turtle role for general work.
 - `wireless/` contains the shared message protocols, router, discovery, and service APIs.
 - `movement/` contains shared turtle movement, locating, fuel, and state helpers.
 - `display/` contains monitor UI pages and elements for the manager.

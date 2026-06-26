@@ -16,16 +16,6 @@ function settings_page.new(m, size, settings, task_runner)
             settings:set(settings.keys.auto_recover_quarries, value)
         end)
 
-    local fluid_fill = Toggle.new(m,
-        "Allow runners to fill quarry fluids?", {
-            fg = colours.black,
-            bg = m:get_default_bg_colour()
-        },
-        settings:read(settings.keys.fill_quarry_fluids),
-        function(value)
-            settings:set(settings.keys.fill_quarry_fluids, value)
-        end)
-
     local padding = {
         top = 1,
         left = 1
@@ -38,9 +28,6 @@ function settings_page.new(m, size, settings, task_runner)
         padding)
 
     container:add_element(1, auto_pickup)
-    container:add_element(2, fluid_fill, {
-        y_offset = 1
-    })
 
     return setmetatable({
         m = m,
