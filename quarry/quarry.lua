@@ -154,15 +154,18 @@ function quarry.unload(manager_id)
     if not has_chests then
         printer.print_info("Requesting chests...")
         local desired = { ["minecraft:chest"] = 64 }
-        wireless.resupply.request(manager_id, movement.get_current_coordinates(), desired)
-        local arrived_msg = wireless.resupply.await_arrived()
+        local request_id = wireless.resupply.request(manager_id, movement.get_current_coordinates(), desired)
+        local arrived_msg = wireless.resupply.await_arrived(request_id)
         if not arrived_msg then
             error("Timed out waiting for chest resupply.")
         end
 
         inventory.drop_slots(2, 2, "up")
-        wireless.resupply.ready(arrived_msg._sender)
-        wireless.resupply.await_done()
+        wireless.resupply.ready(arrived_msg._sender, request_id)
+        local done_msg = wireless.resupply.await_done(request_id, arrived_msg._sender)
+        if not done_msg then
+            error("Timed out waiting for chest resupply to finish.")
+        end
     end
 
     movement.move_back()

@@ -59,8 +59,6 @@ wireless.router.register_handler(
             display:add_or_update_turtle(sender, updated)
         end
 
-        wireless.registry.accept(sender)
-
         return true
     end)
 
@@ -75,7 +73,8 @@ wireless.router.register_handler(
 
         turtle_store:upsert(sender, data)
 
-        wireless.settings.overwrite_settings_on(sender, settings:list())
+        wireless.registry.accept(sender, msg.id)
+        wireless.settings.overwrite_settings_on(sender, settings:list(), msg.id)
 
         printer.print_info("New turtle registered: #" .. sender .. " '" .. data.role .. "'")
     end)

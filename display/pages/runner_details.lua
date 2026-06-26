@@ -12,6 +12,14 @@ local string_util           = require("lib.string_util")
 local runner_details_page   = {}
 runner_details_page.__index = runner_details_page
 
+local function format_location(location)
+    if not location then
+        return "  Unknown"
+    end
+
+    return ("  %d %d %d"):format(location.x, location.y, location.z)
+end
+
 function runner_details_page:new(m, size, page_switcher, task_runner)
     local status_container_size = {
         width = 25,
@@ -169,10 +177,7 @@ function runner_details_page:render(x, y, data)
 
     local position_lines = {
         "Currently at:",
-        ("  %d %d %d"):format(
-            selected_turtle.metadata.current_location.x,
-            selected_turtle.metadata.current_location.y,
-            selected_turtle.metadata.current_location.z)
+        format_location(selected_turtle.metadata.current_location)
     }
     self.status_container:update_element(
         self.text_elements.position_id,

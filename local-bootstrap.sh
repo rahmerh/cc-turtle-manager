@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -euo pipefail
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CACHE_FILE="$SCRIPT_DIR/.latest-save"
 ROLES=("quarry" "manager" "runner")
@@ -12,7 +10,7 @@ if [[ "${1:-}" == "--set-save" ]]; then
         echo "Error: '$NEW_ROOT' is not a directory" >&2
         exit 1
     fi
-    echo "$NEW_ROOT" > "$CACHE_FILE"
+    echo "$NEW_ROOT" >"$CACHE_FILE"
     echo "Save folder set to: $NEW_ROOT"
     exit 0
 fi
@@ -45,30 +43,38 @@ if [[ "$role_valid" == false ]]; then
     exit 1
 fi
 
-for src in "lib" "wireless" "movement" "display" "$ROLE"; do
-  while IFS= read -r -d '' file; do
-    if [[ "$src" == "$ROLE" ]]; then
-      rel="${file#"$src/"}"
-    else
-      rel="$file"
-    fi
+case "$ROLE" in
+    quarry|runner)
+        SOURCES=("$ROLE" "lib" "wireless" "movement")
+        ;;
+    manager)
+        SOURCES=("$ROLE" "lib" "wireless" "display")
+        ;;
+esac
 
-    target_path="$TARGET_DIR/$rel"
-    mkdir -p "$(dirname "$target_path")"
-
-    link_target="$(realpath --relative-to="$(dirname "$target_path")" "$file")"
-
-    if [[ -e "$target_path" ]]; then
-        if [[ -L "$target_path" ]]; then
-            rm "$target_path"
+for src in "${SOURCES[@]}"; do
+    while IFS= read -r -d '' file; do
+        if [[ "$src" == "$ROLE" ]]; then
+            rel="${file#"$src/"}"
         else
-            echo "Error: '$target_path' exists and is not a symlink" >&2
-            exit 1
+            rel="$file"
         fi
-    fi
 
-    ln -s "$(realpath "$file")" "$target_path"
-    echo "Linked: $(realpath "$file") -> $target_path"
-  done < <(find "$src" -type f -print0)
+        target_path="$TARGET_DIR/$rel"
+        mkdir -p "$(dirname "$target_path")"
+
+        link_target="$(realpath --relative-to="$(dirname "$target_path")" "$file")"
+
+        if [[ -e "$target_path" ]]; then
+            if [[ -L "$target_path" ]]; then
+                rm "$target_path"
+            else
+                echo "Error: '$target_path' exists and is not a symlink" >&2
+                exit 1
+            fi
+        fi
+
+        ln -s "$(realpath "$file")" "$target_path"
+        echo "Linked: $(realpath "$file") -> $target_path"
+    done < <(find "$src" -type f -print0)
 done
-

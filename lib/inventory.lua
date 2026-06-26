@@ -30,7 +30,22 @@ function inventory.pull_items_from_down(item, amount)
     local buffer_chest = peripheral.wrap("top")
     local supply_chest = peripheral.wrap("bottom")
 
+    if not buffer_chest or not supply_chest then
+        return nil, errors.NO_INVENTORY_DOWN
+    end
+
     local supply_contents = supply_chest.list()
+
+    local available = 0
+    for _, item_details in pairs(supply_contents) do
+        if item_details.name == item then
+            available = available + item_details.count
+        end
+    end
+
+    if available < amount then
+        return nil, errors.ITEM_UNAVAILABLE
+    end
 
     local total = 0
     for slot, item_details in pairs(supply_contents) do
@@ -46,9 +61,13 @@ function inventory.pull_items_from_down(item, amount)
     end
 
     turtle.select(empty_slot)
-    turtle.suckUp()
+    local sucked = turtle.suckUp(amount)
 
     turtle.select(1)
+
+    if not sucked or turtle.getItemCount(empty_slot) < amount then
+        return nil, errors.ITEM_UNAVAILABLE
+    end
 
     return empty_slot, nil
 end
@@ -110,7 +129,7 @@ function inventory.details_from_slot(slot)
 end
 
 function inventory.move_to_slot(from, to, swap)
-    swap = swap or true
+    if swap == nil then swap = true end
 
     local from_info = turtle.getItemDetail(from)
     if not from_info then
@@ -143,6 +162,8 @@ function inventory.move_to_slot(from, to, swap)
     end
 
     turtle.select(selected)
+
+    return true
 end
 
 function inventory.merge_into_slot(from, to)
@@ -157,6 +178,8 @@ function inventory.merge_into_slot(from, to)
     turtle.transferTo(to)
 
     turtle.select(selected)
+
+    return true
 end
 
 function inventory.get_slots_containing_item(item)

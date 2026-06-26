@@ -16,5 +16,5 @@ return function(sender, msg, turtle_store)
         return nil, errors.wireless.NO_AVAILABLE_RUNNERS
     end
 
-    wireless.fluid_fill.assign(id, msg.data.fluid_columns, sender)
+    wireless.fluid_fill.assign(id, msg.data.fluid_columns, sender, msg.id)
 end

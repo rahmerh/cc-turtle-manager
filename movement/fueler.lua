@@ -59,20 +59,27 @@ function fueler.handle_movement_result(ok, err, ctx)
     end
 
     printer.print_info("Requesting fuel...")
-    wireless.resupply.request(
+    local request_id = wireless.resupply.request(
         manager_id,
         current_coordinates,
         desired)
-    local arrived_msg = wireless.resupply.await_arrived()
+    local arrived_msg = wireless.resupply.await_arrived(request_id)
     if not arrived_msg then
         return nil, errors.NO_FUEL
     end
 
     inventory.drop_slots(1, 1, "up")
-    wireless.resupply.ready(arrived_msg._sender)
-    wireless.resupply.await_done()
+    wireless.resupply.ready(arrived_msg._sender, request_id)
+    local done_msg = wireless.resupply.await_done(request_id, arrived_msg._sender)
+    if not done_msg then
+        return nil, errors.NO_FUEL
+    end
 
     local slot = inventory.find_item("minecraft:coal")
+    if not slot then
+        return nil, errors.NO_FUEL
+    end
+
     if slot ~= 1 then
         local moved, moved_err = inventory.move_to_slot(slot, 1, true)
 

@@ -7,7 +7,7 @@ local printer = require("lib.printer")
 local inventory = require("lib.inventory")
 
 return function(task, config, movement_context, report_progress)
-    local filled_slots = {}
+    local filled_slots = task.filled_slots or {}
 
     if not task.stage then
         printer.print_info(("[%s] Resupplying turtle at " ..
@@ -35,10 +35,15 @@ return function(task, config, movement_context, report_progress)
 
         -- TODO: Handle if too many items requested
         for item, amount in pairs(task.manifest) do
-            local filled_slot = inventory.pull_items_from_down(item, amount)
+            local filled_slot, fill_err = inventory.pull_items_from_down(item, amount)
+            if not filled_slot then
+                return nil, fill_err
+            end
+
             table.insert(filled_slots, filled_slot)
         end
 
+        task.filled_slots = filled_slots
         report_progress(task.job_id, task_stages.to_target, false)
     else
         printer.print_info(("[%s] Resuming resupply task"):format(task.job_id))
@@ -47,9 +52,9 @@ return function(task, config, movement_context, report_progress)
     if task.stage == task_stages.to_target then
         movement.move_to(task.target.x, task.target.y + 1, task.target.z, movement_context)
 
-        wireless.resupply.arrived(task.requested_by)
+        wireless.resupply.arrived(task.requested_by, task.request_id)
 
-        local ready_message = wireless.resupply.await_ready()
+        local ready_message = wireless.resupply.await_ready(task.request_id, task.requested_by)
         if ready_message then
             report_progress(task.job_id, task_stages.resupplying, false)
         else
@@ -62,7 +67,7 @@ return function(task, config, movement_context, report_progress)
             inventory.drop_slots(slot, slot, "down")
         end
 
-        wireless.resupply.done(task.requested_by)
+        wireless.resupply.done(task.requested_by, task.request_id)
 
         report_progress(task.job_id, task_stages.to_unloading, false)
     end

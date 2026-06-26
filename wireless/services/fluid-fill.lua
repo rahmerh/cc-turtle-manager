@@ -15,12 +15,15 @@ function fluid_fill.report(receiver, fluid_columns)
     local payload = core.create_payload(fluid_fill.operations.report, data)
 
     core.send(receiver, payload, core.protocols.fluid_fill)
+
+    return payload.id
 end
 
-function fluid_fill.assign(receiver, fluid_columns, requested_by)
+function fluid_fill.assign(receiver, fluid_columns, requested_by, request_id)
     local data = {
         fluid_columns = fluid_columns,
-        requested_by = requested_by
+        requested_by = requested_by,
+        request_id = request_id,
     }
     local payload = core.create_payload(fluid_fill.operations.assign, data)
 
@@ -31,7 +34,7 @@ function fluid_fill.accept(receiver, job_id)
     local data = {
         job_id = job_id
     }
-    local payload = core.create_payload(fluid_fill.operations.accepted, data)
+    local payload = core.create_payload(fluid_fill.operations.accepted, data, job_id)
 
     core.send(receiver, payload, core.protocols.fluid_fill)
 end

@@ -17,29 +17,36 @@ function pickup.request(receiver, target, what)
     local payload = core.create_payload(pickup.operations.request, data)
 
     core.send(receiver, payload, core.protocols.pickup)
+
+    return payload.id
 end
 
-function pickup.assign(receiver, target, what, requested_by)
+function pickup.assign(receiver, target, what, requested_by, request_id)
     local data = {
         job_type = "pickup",
         target = target,
         what = what,
-        requested_by = requested_by
+        requested_by = requested_by,
+        request_id = request_id,
     }
     local payload = core.create_payload(pickup.operations.assign, data)
 
     core.send(receiver, payload, core.protocols.pickup)
 end
 
-function pickup.await_accepted()
-    return core.await_response(pickup.operations.accepted, 5)
+function pickup.await_accepted(reply_to, sender)
+    return core.await_response(pickup.operations.accepted, 5, {
+        sender = sender,
+        protocol = core.protocols.pickup,
+        reply_to = reply_to,
+    })
 end
 
 function pickup.accept(receiver, job_id)
     local data = {
         job_id = job_id
     }
-    local payload = core.create_payload(pickup.operations.accepted, data)
+    local payload = core.create_payload(pickup.operations.accepted, data, job_id)
 
     core.send(receiver, payload, core.protocols.pickup)
 end

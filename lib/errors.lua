@@ -14,6 +14,7 @@ local errors = {
     INV_FULL = "inv_full",
     SLOT_EMPTY = "slot_empty",
     SLOT_NOT_EMPTY = "slot_not_empty",
+    ITEM_UNAVAILABLE = "item_unavailable",
 
     NO_MONITOR_ATTACHED = "no_monitor_attached",
     INVALID_MONITOR = "invalid_monitor",

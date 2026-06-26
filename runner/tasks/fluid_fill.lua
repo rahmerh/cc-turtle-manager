@@ -60,7 +60,10 @@ return function(task, config, movement_context, report_progress)
 
         local amount_of_filler_blocks = list.map_len(task.fluid_columns) * 3
 
-        inventory.pull_items_from_down("minecraft:cobblestone", amount_of_filler_blocks)
+        local filler_slot, filler_err = inventory.pull_items_from_down("minecraft:cobblestone", amount_of_filler_blocks)
+        if not filler_slot then
+            return nil, filler_err
+        end
 
         report_progress(task.job_id, task_stages.to_target, false)
     end

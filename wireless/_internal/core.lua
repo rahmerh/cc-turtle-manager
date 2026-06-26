@@ -23,9 +23,10 @@ function _private.next_id()
     return ("%d-%d-%d"):format(os.getComputerID(), os.epoch("utc"), math.random(1, 1e9))
 end
 
-function core.create_payload(operation, data)
+function core.create_payload(operation, data, reply_to)
     return {
         id = _private.next_id(),
+        reply_to = reply_to,
         operation = operation,
         data = data,
     }
@@ -43,9 +44,10 @@ function core.receive(timeout)
     return rednet.receive(nil, timeout)
 end
 
-function core.stash_response(sender, msg)
+function core.stash_response(sender, msg, protocol)
     if type(msg) == "table" and msg.id then
         msg._sender         = sender
+        msg._protocol       = protocol
         core._inbox[msg.id] = msg
     end
 end
@@ -60,12 +62,34 @@ function core.take_response(id)
     return message
 end
 
-function core.await_response(operation, timeout)
+local function matches(msg, operation, options)
+    if type(msg) ~= "table" or msg.operation ~= operation then
+        return false
+    end
+
+    if options then
+        if options.sender and msg._sender ~= options.sender then
+            return false
+        end
+
+        if options.protocol and msg._protocol ~= options.protocol then
+            return false
+        end
+
+        if options.reply_to and msg.reply_to ~= options.reply_to then
+            return false
+        end
+    end
+
+    return true
+end
+
+function core.await_response(operation, timeout, options)
     local deadline = time.alive_duration_in_seconds() + timeout
 
     while true do
         for id, msg in pairs(core._inbox) do
-            if type(msg) == "table" and msg.operation == operation then
+            if matches(msg, operation, options) then
                 core._inbox[id] = nil
                 return msg
             end

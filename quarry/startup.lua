@@ -126,8 +126,13 @@ local function kill_switch()
 end
 
 local function main()
-    wireless.registry.announce_at(manager_id, "quarry", metadata)
-    local overwrite_msg = wireless.settings.await_settings_overwrite()
+    local registered, registry_id = wireless.registry.announce_at(manager_id, "quarry", metadata)
+    if not registered then
+        printer.print_error("Manager did not acknowledge registration.")
+        return
+    end
+
+    local overwrite_msg = wireless.settings.await_settings_overwrite(manager_id, registry_id)
 
     if not overwrite_msg then
         printer.print_error("Didn't receive settings from manager in time.")
@@ -145,23 +150,51 @@ local function main()
     if next(needed_supplies) ~= nil then
         printer.print_info("Requesting supplies...")
 
-        wireless.resupply.request(
+        local request_id = wireless.resupply.request(
             manager_id,
             movement.get_current_coordinates(),
             needed_supplies)
-        local arrived_msg = wireless.resupply.await_arrived()
+        local arrived_msg = wireless.resupply.await_arrived(request_id)
+        if not arrived_msg then
+            printer.print_error("Timed out waiting for startup supplies.")
+            return
+        end
+
         inventory.drop_slots(1, 1, "up")
-        wireless.resupply.ready(arrived_msg._sender)
-        wireless.resupply.await_done()
+        wireless.resupply.ready(arrived_msg._sender, request_id)
+
+        local done_msg = wireless.resupply.await_done(request_id, arrived_msg._sender)
+        if not done_msg then
+            printer.print_error("Timed out waiting for startup resupply to finish.")
+            return
+        end
 
         local coal_slot = inventory.find_item("minecraft:coal")
+        if not coal_slot then
+            printer.print_error("Startup resupply did not provide coal.")
+            return
+        end
+
         if coal_slot ~= 1 then
-            inventory.move_to_slot(coal_slot, 1)
+            local moved, moved_err = inventory.move_to_slot(coal_slot, 1)
+            if not moved then
+                printer.print_error("Could not move coal to slot 1: " .. tostring(moved_err))
+                return
+            end
         end
 
         local chest_slot = inventory.find_item("minecraft:chest")
+        if not chest_slot then
+            printer.print_error("Startup resupply did not provide chests.")
+            return
+        end
+
         if chest_slot ~= 2 then
-            inventory.move_to_slot(chest_slot, 2)
+            local moved, moved_err = inventory.move_to_slot(chest_slot, 2)
+            if not moved then
+                printer.print_error("Could not move chests to slot 2: " .. tostring(moved_err))
+                return
+            end
         end
     end
 

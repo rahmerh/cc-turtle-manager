@@ -17,17 +17,21 @@ function settings.update_setting_on(receiver, key, value)
     core.send(receiver, payload, core.protocols.settings)
 end
 
-function settings.overwrite_settings_on(receiver, all_settings)
+function settings.overwrite_settings_on(receiver, all_settings, reply_to)
     local data = {
         all_settings = all_settings,
     }
-    local payload = core.create_payload(settings.operations.overwrite, data)
+    local payload = core.create_payload(settings.operations.overwrite, data, reply_to)
 
     core.send(receiver, payload, core.protocols.settings)
 end
 
-function settings.await_settings_overwrite()
-    return core.await_response(settings.operations.overwrite, 5)
+function settings.await_settings_overwrite(sender, reply_to)
+    return core.await_response(settings.operations.overwrite, 5, {
+        sender = sender,
+        protocol = core.protocols.settings,
+        reply_to = reply_to,
+    })
 end
 
 return settings

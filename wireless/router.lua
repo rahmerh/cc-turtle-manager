@@ -33,7 +33,7 @@ function router.step(timeout)
     end
 
     if msg.id then
-        core.stash_response(sender, msg)
+        core.stash_response(sender, msg, protocol)
     end
 
     if type(msg.operation) ~= "string" then

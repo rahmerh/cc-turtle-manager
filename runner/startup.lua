@@ -84,6 +84,7 @@ wireless.router.register_handler(
             what = m.data.what,
             task_type = "pickup",
             requested_by = m.data.requested_by,
+            request_id = m.data.request_id,
         }
 
         task_queue:enqueue(task)
@@ -102,6 +103,7 @@ wireless.router.register_handler(
             target = m.data.target,
             manifest = m.data.manifest,
             requested_by = m.data.requested_by,
+            request_id = m.data.request_id,
         }
 
         task_queue:enqueue(task)
@@ -119,6 +121,7 @@ wireless.router.register_handler(
             task_type = "fluid_fill",
             fluid_columns = m.data.fluid_columns,
             requested_by = m.data.requested_by,
+            request_id = m.data.request_id,
         }
 
         task_queue:enqueue(task)
@@ -177,22 +180,41 @@ local function main()
 
             local supplies = { ["minecraft:coal"] = 64 }
 
-            wireless.resupply.request(
+            local request_id = wireless.resupply.request(
                 manager_id,
                 movement.get_current_coordinates(),
                 supplies)
-            local arrived_msg = wireless.resupply.await_arrived()
+            local arrived_msg = wireless.resupply.await_arrived(request_id)
+            if not arrived_msg then
+                printer.print_error("Timed out waiting for fuel resupply.")
+                goto continue
+            end
+
             inventory.drop_slots(1, 1, "up")
-            wireless.resupply.ready(arrived_msg._sender)
-            wireless.resupply.await_done()
+            wireless.resupply.ready(arrived_msg._sender, request_id)
+
+            local done_msg = wireless.resupply.await_done(request_id, arrived_msg._sender)
+            if not done_msg then
+                printer.print_error("Timed out waiting for fuel resupply to finish.")
+                goto continue
+            end
         elseif fuel.count < 16 then
             printer.print_info("Refueling self...")
             movement.move_to(
                 config.supply_chest_pos.x,
                 config.supply_chest_pos.y + 1,
                 config.supply_chest_pos.z)
-            local slot = inventory.pull_items_from_down("minecraft:coal", 64 - fuel.count)
-            inventory.merge_into_slot(slot, 1)
+            local slot, pull_err = inventory.pull_items_from_down("minecraft:coal", 64 - fuel.count)
+            if not slot then
+                printer.print_error("Could not pull coal: " .. tostring(pull_err))
+                goto continue
+            end
+
+            local merged, merge_err = inventory.merge_into_slot(slot, 1)
+            if not merged then
+                printer.print_error("Could not merge coal into fuel slot: " .. tostring(merge_err))
+                goto continue
+            end
             movement.move_to(
                 config.unloading_chest_pos.x,
                 config.unloading_chest_pos.y + 1,
@@ -210,19 +232,41 @@ local function main()
         cancel_token = CancelToken.new()
 
         local which_completed
+        local task_ok, task_err
         if task_handlers[task.task_type] then
             active_task = task.job_id
             which_completed = parallel.waitForAny(
-                function() task_handlers[task.task_type](task, config, movement_context, report_progress) end,
+                function()
+                    task_ok, task_err = task_handlers[task.task_type](
+                        task,
+                        config,
+                        movement_context,
+                        report_progress)
+                    if task_ok == nil and task_err == nil then
+                        task_ok = true
+                    end
+                end,
                 function() cancel_token:await() end)
         else
             printer.print_warning("Unsupported task: " .. task.task_type)
+            runner_status = "Idle"
+            active_task = nil
+            sleep(1)
+            goto continue
         end
 
         if which_completed == 2 then
             active_task = nil
             goto continue
         elseif which_completed == 1 then
+            if not task_ok then
+                printer.print_error(("[%s] Failed: %s"):format(task.job_id, tostring(task_err)))
+                runner_status = "Idle"
+                active_task = nil
+                sleep(1)
+                goto continue
+            end
+
             if task.task_type == "pickup" then
                 wireless.job.pickup_done(manager_id, task.what)
             end

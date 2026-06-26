@@ -12,6 +12,18 @@ local list                  = require("lib.list")
 local quarry_details_page   = {}
 quarry_details_page.__index = quarry_details_page
 
+local function format_location(location)
+    if not location then
+        return "Unknown"
+    end
+
+    return ("%d %d %d"):format(location.x, location.y, location.z)
+end
+
+local function format_number(value)
+    return value or "Unknown"
+end
+
 function quarry_details_page:new(m, size, page_switcher, task_runner)
     local buttons_container_size = {
         width = 20,
@@ -248,15 +260,13 @@ function quarry_details_page:render(x, y, data)
 
     local position_lines = {
         "Position information:", "",
-        ("  Currently at: %d %d %d"):format(
-            selected_turtle.metadata.current_location.x,
-            selected_turtle.metadata.current_location.y,
-            selected_turtle.metadata.current_location.z),
-        ("  Mining layer: %d out of %d"):format(
-            selected_turtle.metadata.current_layer,
-            selected_turtle.metadata.boundaries.layers),
-        ("  Mining row: %d"):format(
-            selected_turtle.metadata.current_row)
+        ("  Currently at: %s"):format(
+            format_location(selected_turtle.metadata.current_location)),
+        ("  Mining layer: %s out of %s"):format(
+            format_number(selected_turtle.metadata.current_layer),
+            format_number(selected_turtle.metadata.boundaries and selected_turtle.metadata.boundaries.layers)),
+        ("  Mining row: %s"):format(
+            format_number(selected_turtle.metadata.current_row))
     }
     self.information_container:update_element(
         self.text_elements.position_info_id,
@@ -265,15 +275,13 @@ function quarry_details_page:render(x, y, data)
 
     local quarry_lines = {
         "Quarry information:", "",
-        ("  Dimensions: %dx%d blocks"):format(
-            selected_turtle.metadata.boundaries.width,
-            selected_turtle.metadata.boundaries.depth),
-        ("  Total layers: %d"):format(
-            selected_turtle.metadata.boundaries.layers),
-        ("  Starting location: %d %d %d"):format(
-            selected_turtle.metadata.boundaries.starting_position.x,
-            selected_turtle.metadata.boundaries.starting_position.y,
-            selected_turtle.metadata.boundaries.starting_position.z)
+        ("  Dimensions: %sx%s blocks"):format(
+            format_number(selected_turtle.metadata.boundaries and selected_turtle.metadata.boundaries.width),
+            format_number(selected_turtle.metadata.boundaries and selected_turtle.metadata.boundaries.depth)),
+        ("  Total layers: %s"):format(
+            format_number(selected_turtle.metadata.boundaries and selected_turtle.metadata.boundaries.layers)),
+        ("  Starting location: %s"):format(
+            format_location(selected_turtle.metadata.boundaries and selected_turtle.metadata.boundaries.starting_position))
     }
     self.information_container:update_element(
         self.text_elements.quarry_info_id,

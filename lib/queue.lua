@@ -82,6 +82,7 @@ function queue:compact()
         j = j + 1
     end
     self.first, self.last = 1, j - 1
+    persist(self)
 end
 
 --- Nudges an entry earlier or later in the queue.
@@ -107,7 +108,7 @@ function queue:get(index)
     local item = self.items[index]
 
     if not item then
-        error(("No item found at inde: %d"):format(index))
+        error(("No item found at index: %d"):format(index))
     end
 
     return item

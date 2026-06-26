@@ -24,7 +24,10 @@ function Settings.new(settings_file)
     if fs.exists(self._path) then
         local f = fs.open(self._path, "r")
         local raw = f.readAll(); f.close()
-        self._settings = textutils.unserialize(raw) or {}
+        local loaded = textutils.unserialize(raw) or {}
+        for key, value in pairs(loaded) do
+            self._settings[key] = value
+        end
     end
 
     return self
@@ -54,7 +57,9 @@ function Settings:set(key, value)
     self._settings[key] = value
     save(self)
 
-    self.on_change(key, value)
+    if self.on_change then
+        self.on_change(key, value)
+    end
 end
 
 function Settings:list()

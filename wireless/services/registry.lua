@@ -23,20 +23,26 @@ function registry.announce_at(manager_id, role, metadata)
     for i = 1, attempts do
         core.send(manager_id, payload, core.protocols.registry)
 
-        local message = core.await_response(registry.operations.accepted, 5)
+        local message = core.await_response(registry.operations.accepted, 5, {
+            sender = manager_id,
+            protocol = core.protocols.registry,
+            reply_to = payload.id,
+        })
 
         if message then
-            break
+            return true, payload.id
         end
 
         if i < attempts then
             sleep(1)
         end
     end
+
+    return nil, "no_ack"
 end
 
-function registry.accept(receiver)
-    local payload = core.create_payload(registry.operations.accepted)
+function registry.accept(receiver, reply_to)
+    local payload = core.create_payload(registry.operations.accepted, nil, reply_to)
     core.send(receiver, payload, core.protocols.registry)
 end
 
