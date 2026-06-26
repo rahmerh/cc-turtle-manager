@@ -1,13 +1,15 @@
 # Turtle manager
 
-Collection of my own scripts for working with CC: Tweaked's turtles. Includes generic pathfinding, dashboards and the works.
+Collection of my own scripts for working with CC: Tweaked's turtles. Includes generic pathfinding, dashboards, the works.
 
 ## Getting started
+
+All roles depend on GPS, make sure you have working GPS setup configured.
 
 First get the bootstrap script onto the turtle or computer:
 
 ```sh
-wget https://raw.githubusercontent.com/rahmerh/turtle-manager/refs/heads/main/bootstrap.lua
+wget https://raw.githubusercontent.com/rahmerh/cc-turtle-manager/refs/heads/main/bootstrap.lua
 ```
 
 Next bootstrap the turtle/computer, you can select from the following roles:
@@ -20,7 +22,7 @@ Next bootstrap the turtle/computer, you can select from the following roles:
 
 ### Manager
 
-This is the central computer and should always be running. Because of this, you don't need to run anything, simply attach a modem to a computer and reboot.
+This is the central computer and should always be running. After bootstrap simply reboot, it'll configure itself.
 
 If you want to see the current turtles, attach a monitor (minimum 2x2).
 
@@ -28,17 +30,23 @@ If you want to see the current turtles, attach a monitor (minimum 2x2).
 
 First you have to prepare the job by running `prepare` and entering the quarry dimensions.
 
-This will create a file called `job.conf` which contains the quarry's boundaries and progress. By default a quarry is resumable but this and other data can be edited manually.
-
-You can start the quarry by rebooting the turtle.
-
-The turtle doesn't go back up to the surface to unload or to resupply, it will send a command to the manager which will send a runner to retrieve the items or provide requested resources.
+This will create a file called `job.conf` which contains the quarry's boundaries and progress. 
+This file shouldn't be edited manually, it allows the turtle to keep track of it's own progress.
 
 ### Runner
 
-A runner is a very general helper role which assists others. When a quarry turtle sends a pickup request, a runner will come and retrieve it. When a turtle is out of fuel or chests, a runner will go and rescue it.
+A runner is a very general helper role which assists others. It can do the following jobs:
 
-First you need to run `prepare` and enter the correct values. The resupply chest requires some additional setup. Due to turtle limitations, it can't directly suck up a specified item, which is why it requires an additional "buffer" chest on top. This means the supply chest's setup should look like this:
+- `pickup` picks up a chest located at the received coordinates. Will pick it up and unload at configured "unloading" chest.
+- `resupply` receives a list of required items, retrieves them and brings them to the requesting turtle.
+- `fluid_fill` (TODO) receives a list of coordinates to fill up and drain fluids. Used by quarries.
+
+It has 2 chests that are important, the unloading and resupply chest. 
+The unloading chest is where it dumps it's items and the resupply chest is where it gets it's supplies.
+
+Due to turtle limitations, it can't directly suck up a specified item from a chest
+which is why it requires an additional "buffer" chest on top. 
+This means the resupply chest's setup should look like this:
 
 ```
 [buffer chest]
@@ -46,16 +54,19 @@ First you need to run `prepare` and enter the correct values. The resupply chest
 [supply chest]
 ```
 
-The turtles only request coal, chests and cobblestone, so make sure to always have these supplies in your supply chest. Personal recommendation is to either have an AE2 interface which always has 64 coal and chests or use another mod to always have those items in the supply chest.
+The turtles only request coal, chests and cobblestone, 
+so make sure to always have these supplies in your supply chest. 
+Personal recommendation is to either have an AE2 interface which always has 64 coal and chests or use another mod to always have those items in the supply chest.
+
+A runner will always pause on top of the unloading chest, waiting for it's next command. So make sure each runner has it's own unloading chest.
 
 ## TODO
 
+- Quarry fluid fill
 - Dashboard
   - Edit quarry settings page.
   - Map/radar page.
-
 - Retry failed tasks (both from turtles and manager).
-- Remove quarry fluid handling, add runner fluid handling.
 - Turtles redistribute tasks.
 - Continue quarry while waiting for supplies.
 - Improve unstuck methods + report turtle is stuck on the dashboard.
@@ -65,3 +76,6 @@ The turtles only request coal, chests and cobblestone, so make sure to always ha
   - General errors.
   - Monitor too small.
   - Multiple managers.
+- More roles:
+  - Logger (tree farm)
+  - Farmer (generic crop farmer)

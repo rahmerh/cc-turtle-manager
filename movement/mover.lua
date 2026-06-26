@@ -414,7 +414,7 @@ mover.move_to = function(x, y, z, dig, state)
             return true
         end
 
-        -- Try some unstuck manouvers
+        -- Try some unstuck maneuvers
         if not moved then
             local got_unstuck = try_unstuck_moving_over()
 

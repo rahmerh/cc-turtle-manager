@@ -7,7 +7,7 @@ end
 local role    = args[1]
 
 local OWNER   = "rahmerh"
-local REPO    = "turtle-manager"
+local REPO    = "cc-turtle-manager"
 local REF     = "main"
 
 -- ---- Layout per role ----
