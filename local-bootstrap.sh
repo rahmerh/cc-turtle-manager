@@ -1,69 +1,69 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CACHE_FILE="$SCRIPT_DIR/.latest-save"
 ROLES=("quarry" "manager" "runner")
 
-if [[ "${1:-}" == "--set-save" ]]; then
+if [[ "$1" == "--set-save" ]]; then
     NEW_ROOT="$2"
+
     if [[ ! -d "$NEW_ROOT" ]]; then
         echo "Error: '$NEW_ROOT' is not a directory" >&2
         exit 1
     fi
+
     echo "$NEW_ROOT" >"$CACHE_FILE"
     echo "Save folder set to: $NEW_ROOT"
     exit 0
 fi
 
-ROLE="$1"
-TARGET_ID="$2"
+role="$1"
+computer_id="$2"
 
 if [[ ! -f "$CACHE_FILE" ]]; then
     echo "Error: Save cache file doesn't exist. Run: $0 --set-save <SAVE_DIR>" >&2
     exit 1
 fi
 
-SAVE_DIR="$(cat "$CACHE_FILE")"
-TARGET_DIR="$SAVE_DIR/computercraft/computer/$TARGET_ID"
+save_dir="$(cat "$CACHE_FILE")"
+computer_target_dir="$save_dir/computercraft/computer/$computer_id"
 
-if [[ -z "$TARGET_DIR" || ! -d "$TARGET_DIR" ]]; then
-    mkdir -p "$TARGET_DIR"
+if [[ -z "$computer_target_dir" || ! -d "$computer_target_dir" ]]; then
+    mkdir -p "$computer_target_dir"
 fi
 
 role_valid=false
 for r in "${ROLES[@]}"; do
-    if [[ "$r" == "$ROLE" ]]; then
+    if [[ "$r" == "$role" ]]; then
         role_valid=true
         break
     fi
 done
 
 if [[ "$role_valid" == false ]]; then
-    echo "Error: Role '$ROLE' is not supported" >&2
+    echo "Error: Role '$role' is not supported" >&2
     exit 1
 fi
 
-case "$ROLE" in
-    quarry|runner)
-        SOURCES=("$ROLE" "lib" "wireless" "movement")
+case "$role" in
+    quarry | runner)
+        scripts_to_link=("$role" "lib" "wireless" "movement")
         ;;
     manager)
-        SOURCES=("$ROLE" "lib" "wireless" "display")
+        scripts_to_link=("$role" "lib" "wireless" "display")
         ;;
 esac
 
-for src in "${SOURCES[@]}"; do
+for src in "${scripts_to_link[@]}"; do
     while IFS= read -r -d '' file; do
-        if [[ "$src" == "$ROLE" ]]; then
+        if [[ "$src" == "$role" ]]; then
             rel="${file#"$src/"}"
         else
             rel="$file"
         fi
 
-        target_path="$TARGET_DIR/$rel"
+        target_path="$computer_target_dir/$rel"
         mkdir -p "$(dirname "$target_path")"
-
-        link_target="$(realpath --relative-to="$(dirname "$target_path")" "$file")"
 
         if [[ -e "$target_path" ]]; then
             if [[ -L "$target_path" ]]; then

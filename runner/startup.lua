@@ -27,7 +27,7 @@ local config = textutils.unserialize(raw)
 local task_queue = queue.new("tasks.db")
 
 wireless.open()
-local manager_id, err = wireless.discovery.find("manager")
+local manager_id, err = wireless.discovery.find_manager(10)
 if not manager_id and err then
     printer.print_error("Could not determine manager: " .. err)
     return

@@ -44,7 +44,7 @@ end
 
 function TurtleStore.new(path)
     local self = setmetatable({
-        _path = path or "turtles.db",
+        _path = path or "turtle_store.json",
         _turtles = {},
     }, TurtleStore)
 

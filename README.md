@@ -1,10 +1,10 @@
 # Turtle manager
 
-Collection of my own scripts for working with CC: Tweaked's turtles. Includes generic pathfinding, dashboards, the works.
+Computer craft turtle manager. Async, role based and distributed. Designed for efficiency and to be managed remotely.
 
 ## Getting started
 
-All roles depend on GPS, make sure you have working GPS setup configured.
+All roles depend on GPS, make sure you have a working GPS setup running.
 
 First get the bootstrap script onto the turtle or computer:
 
@@ -18,69 +18,66 @@ Next bootstrap the turtle/computer, you can select from the following roles:
 - Quarry `bootstrap quarry`
 - Runner `bootstrap runner`
 
-## Usage
+Below describes how to quickly get up and running, in depth documentation can be found in `docs/`.
+
+## Roles
 
 ### Manager
 
-This is the central computer and should always be running. After bootstrap simply reboot, it'll configure itself.
+This is the central computer and should always be running, 
+if a turtle can't find the manager (either not running or not chunk loaded) it won't be able to start up.
+
+It is responsible for receiving heartbeats/metadata from all turtles. Also receives and distributes tasks.
 
 If you want to see the current turtles, attach a monitor (minimum 2x2).
 
 ### Quarry
 
-First you have to prepare the job by running `prepare` and entering the quarry dimensions.
+Turtle which will quarry an area all the way down from the starting position down to bedrock.
 
-This will create a file called `job.conf` which contains the quarry's boundaries and progress. 
-This file shouldn't be edited manually, it allows the turtle to keep track of it's own progress.
+To start simply run `prepare` and input the coordinates to start from and the dimensions of the quarry. 
+When done, reboot the turtle and it'll request it's initial supplies and head off to the location.
+
+The quarry turtle requires a pickaxe and modem.
 
 ### Runner
 
 A runner is a very general helper role which assists others. It can do the following jobs:
 
-- `pickup` picks up a chest located at the received coordinates. Will pick it up and unload at configured "unloading" chest.
+- `pickup` picks up a chest located at the received coordinates.
 - `resupply` receives a list of required items, retrieves them and brings them to the requesting turtle.
 
-It has 2 chests that are important, the unloading and resupply chest. 
-The unloading chest is where it dumps it's items and the resupply chest is where it gets it's supplies.
+To start run `prepare` and input the coordinates of the supply and unloading chest. When done just reboot.
 
-Due to turtle limitations, it can't directly suck up a specified item from a chest
-which is why it requires an additional "buffer" chest on top. 
-This means the resupply chest's setup should look like this:
+The supply chest should always contain coal and chests, at the moment it's up to you to ensure these are always there.
+Recommended to use an AE2 interface with these items.
 
-```
-[buffer chest]
-[air]
-[supply chest]
-```
+The unloading chest is where it dumps all the items from pick jobs, at the moment it's up to you to ensure it gets emptied automatically.
+Recommended to use AE2 and simply import all items from this chest.
 
-The turtles only request coal, chests and cobblestone, 
-so make sure to always have these supplies in your supply chest. 
-Personal recommendation is to either have an AE2 interface which always has 64 coal and chests or use another mod to always have those items in the supply chest.
-
-A runner will always pause on top of the unloading chest, waiting for it's next command. So make sure each runner has it's own unloading chest.
+The quarry turtle requires a pickaxe and modem.
 
 ## TODO
 
 - Dashboard
   - Edit quarry settings page.
-  - Map/radar page.
+  - Error pages
+    - General errors.
+    - Monitor too small.
+    - Multiple managers.
 - Retry failed tasks (both from turtles and manager).
 - Turtles redistribute tasks.
 - Continue quarry while waiting for supplies.
 - Improve unstuck methods + report turtle is stuck on the dashboard.
 - Turtle waiting bay + shared unloading/supply stations.
 - Different fuel types support
-- Dashboard error screen for:
-  - General errors.
-  - Monitor too small.
-  - Multiple managers.
 - More roles:
   - Logger (tree farm)
   - Farmer (generic crop farmer)
 
 ## Development
 
-To work around the github cache there's a local setup script set up. 
+To work around the github cache there's a script to set up a turtle locally.
 Simply provide the role and computer id and it'll symlink in all required lua files.
-Minecraft disallows symlinks but you can work around this by setting this:
-`printf '[prefix]/home/bas/projects/cc-turtle-manager/' > ~/.minecraft/allowed_symlinks.txt`
+Minecraft disallows symlinks in world folders so you'll have to allow it (Replace placeholder with full, absolute path):
+`printf '[prefix]<PATH_TO_REPO>/cc-turtle-manager/' > ~/.minecraft/allowed_symlinks.txt`

@@ -22,4 +22,6 @@ return function(sender, msg, turtle_store)
         msg.data.manifest,
         sender,
         msg.id)
+
+    return true
 end

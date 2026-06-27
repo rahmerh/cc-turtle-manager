@@ -22,4 +22,6 @@ return function(sender, msg, turtle_store)
         msg.data.what,
         sender,
         msg.id)
+
+    return true
 end

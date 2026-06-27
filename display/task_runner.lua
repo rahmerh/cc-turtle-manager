@@ -35,7 +35,7 @@ function task_runner:new(notifier)
                 error("Can't recover an active turtle.")
             end
 
-            local manager_id = wireless.discovery.find("manager")
+            local manager_id = wireless.discovery.find_manager(10)
 
             wireless.pickup.request(
                 manager_id,

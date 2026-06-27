@@ -52,7 +52,7 @@ local function render_horizontal_rows(self, container_x, container_y, data)
 
         local element = child.element
 
-        -- If it doesn't horizontally, wrap to new row.
+        -- If it doesn't fit horizontally, wrap to new row.
         if x + element.size.width > self.size.width + container_x then
             x = container_x + self.padding.left
             y = y + row_height + self.spacing

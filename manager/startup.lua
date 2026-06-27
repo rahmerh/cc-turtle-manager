@@ -2,11 +2,13 @@ local wireless = require("wireless")
 local Display = require("display")
 
 local TurtleStore = require("turtle_store")
+local JobQueue = require("job_queue")
 local Settings = require("settings")
 
 local printer = require("lib.printer")
 local time = require("lib.time")
 local string_util = require("lib.string_util")
+local constants = require("lib.constants")
 
 local handlers = {
     dispatch_pickup = require("handlers.dispatch_pickup"),
@@ -14,12 +16,22 @@ local handlers = {
 }
 
 local turtle_store = TurtleStore.new()
+local job_queue = JobQueue.new()
 local settings = Settings.new()
 
 printer.print_info("Booting manager #" .. os.getComputerID())
 
-wireless.open()
-wireless.discovery.host("manager")
+if not wireless.open() then
+    printer.print_error("Could not open rednet, is there a modem attached?")
+    return
+end
+
+local host_ok, host_err = wireless.discovery.host_manager()
+
+if not host_ok then
+    printer.print_error(host_err)
+    return
+end
 
 local monitor = peripheral.find("monitor")
 local display
@@ -75,6 +87,13 @@ wireless.router.register_handler(
         wireless.registry.accept(sender, msg.id)
         wireless.settings.overwrite_settings_on(sender, settings:list(), msg.id)
 
+        local next_job = job_queue:peek()
+        if next_job then
+            print("QUEUE FILLED")
+        else
+            print("ESTSETS")
+        end
+
         printer.print_info("New turtle registered: #" .. sender .. " '" .. data.role .. "'")
     end)
 
@@ -82,14 +101,26 @@ wireless.router.register_handler(
     wireless.protocols.pickup,
     wireless.pickup.operations.request,
     function(sender, msg)
-        handlers.dispatch_pickup(sender, msg, turtle_store)
+        -- TODO: Log error
+        local dispatched_ok, _ = handlers.dispatch_pickup(sender, msg, turtle_store)
+
+        if not dispatched_ok then
+            printer.print_warning("Could not dispatch job to runner. Queueing it instead.")
+            job_queue:enqueue(msg)
+        end
     end)
 
 wireless.router.register_handler(
     wireless.protocols.resupply,
     wireless.resupply.operations.request,
     function(sender, msg)
-        handlers.dispatch_resupply(sender, msg, turtle_store)
+        -- TODO: Log error
+        local dispatched_ok, _ = handlers.dispatch_resupply(sender, msg, turtle_store)
+
+        if not dispatched_ok then
+            printer.print_warning("Could not dispatch job to runner. Queueing it instead.")
+            job_queue:enqueue(msg)
+        end
     end)
 
 wireless.router.register_handler(
@@ -153,13 +184,13 @@ local function mark_stale()
     end
 end
 
-local main_loops = { wireless.router.loop, mark_stale }
+local main = { wireless.router.loop, mark_stale }
 
 if display then
-    table.insert(main_loops, function() display:loop() end)
-    table.insert(main_loops, function() display.task_runner:loop() end)
+    table.insert(main, function() display:loop() end)
+    table.insert(main, function() display.task_runner:loop() end)
 end
 
 printer.print_success("Manager online.")
 
-parallel.waitForAny(table.unpack(main_loops))
+parallel.waitForAny(table.unpack(main))

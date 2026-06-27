@@ -2,44 +2,28 @@ local time = require("lib.time")
 
 local discovery = {}
 
-local PROTOCOL_PREFIX = "discovery"
+local discovery_protocol = "discovery:manager"
 
-local function protocol_from_role(role)
-    role = string.lower(role)
-    if not role:match("^[a-z0-9:_-]+$") then
-        error("Bad role: " .. tostring(role))
-    end
-    return PROTOCOL_PREFIX .. role
-end
+--- Starts a "host" for a manager computer.
+function discovery.host_manager()
+    local existing_manager = rednet.lookup(discovery_protocol)
 
---- Advertise this computer under a role/name.
---- @param role string   e.g., "manager", "runner", "quarry"
---- @param name string  instance name
-function discovery.host(role, name)
-    name = name or "default"
-    if not role then
-        error("Role can't be nil")
+    if existing_manager then
+        return false, "Another manager already alive: #" .. existing_manager
     end
 
-    rednet.host(protocol_from_role(role), name)
+    rednet.host(discovery_protocol, "" .. os.getComputerID())
 
     return true
 end
 
---- Find a single computer id for role+name
---- @param role string   e.g., "manager", "runner", "quarry"
---- @param name string  instance name
+--- Finds the manager's computer id to be used in sending messages.
 --- @return integer|nil, string?  id or nil,"not_found"
-function discovery.find(role, name)
-    name = name or "default"
-    if not role then
-        error("Role can't be nil")
-    end
-
-    local deadline = time.alive_duration_in_seconds() + 20
+function discovery.find_manager(timeout_seconds)
+    local deadline = time.alive_duration_in_seconds() + timeout_seconds
 
     repeat
-        local id = rednet.lookup(protocol_from_role(role), name)
+        local id = rednet.lookup(discovery_protocol)
 
         if id then
             return id

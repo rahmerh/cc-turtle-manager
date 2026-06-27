@@ -23,7 +23,7 @@ if not initialized and init_err then
 end
 
 wireless.open()
-local manager_id, find_err = wireless.discovery.find("manager")
+local manager_id, find_err = wireless.discovery.find_manager(10)
 if not manager_id and find_err then
     printer.print_error("Could not determine manager: " .. find_err)
     return

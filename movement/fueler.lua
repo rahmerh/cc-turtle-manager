@@ -1,15 +1,11 @@
-local wireless      = require("wireless")
-local locator       = require("movement.locator")
+local wireless  = require("wireless")
+local locator   = require("movement.locator")
 
-local inventory     = require("lib.inventory")
-local errors        = require("lib.errors")
-local printer       = require("lib.printer")
+local inventory = require("lib.inventory")
+local errors    = require("lib.errors")
+local printer   = require("lib.printer")
 
-local fueler        = {}
-
-local ACCEPTED_FUEL = {
-    ["minecraft:coal"] = true
-}
+local fueler    = {}
 
 function fueler.get_fuel_level()
     return turtle.getFuelLevel()

@@ -1,12 +1,15 @@
 local core = require("wireless._internal.core")
 
 local printer = require("lib.printer")
-local errors = require("lib.errors")
 
 local router = {
     _handlers = {},
 }
 
+--- Registers a handler/callback for the specified protocol and operation.
+---@param protocol string the protocol to listen to.
+---@param operation string the operation to filter on.
+---@param handler function the callback to invoke for each message with the protocol and operation.
 function router.register_handler(protocol, operation, handler)
     if type(protocol) ~= "string" then
         error("Protocol is required/invalid.")
@@ -26,8 +29,10 @@ function router.register_handler(protocol, operation, handler)
     }
 end
 
-function router.step(timeout)
-    local sender, msg, protocol = core.receive(timeout)
+--- Receive message from rednet and route to registered handlers
+---@param timeout_seconds integer amount of seconds for each "receive message" poll
+local function step(timeout_seconds)
+    local sender, msg, protocol = core.receive(timeout_seconds)
     if not sender or type(msg) ~= "table" then
         return false
     end
@@ -60,9 +65,11 @@ function router.step(timeout)
     end
 end
 
+--- Main loop to listen/handle messages.
 function router.loop()
     while true do
-        router.step(5)
+        -- TODO: Handle result
+        step(5)
     end
 end
 

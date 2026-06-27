@@ -33,14 +33,16 @@ end
 
 function core.open()
     peripheral.find("modem", rednet.open)
+
+    return rednet.isOpen()
 end
 
 function core.send(receiver, payload, protocol)
     rednet.send(receiver, payload, protocol)
 end
 
-function core.receive(timeout)
-    return rednet.receive(nil, timeout)
+function core.receive(timeout_seconds)
+    return rednet.receive(nil, timeout_seconds)
 end
 
 function core.stash_response(sender, msg, protocol)
@@ -83,8 +85,8 @@ local function matches(msg, operation, options)
     return true
 end
 
-function core.await_response(operation, timeout, options)
-    local deadline = time.alive_duration_in_seconds() + timeout
+function core.await_response(operation, timeout_seconds, options)
+    local deadline = time.alive_duration_in_seconds() + timeout_seconds
 
     while true do
         for id, msg in pairs(core._inbox) do
