@@ -6,6 +6,7 @@ local CancelToken = require("cancel_token")
 local queue = require("lib.queue")
 local printer = require("lib.printer")
 local inventory = require("lib.inventory")
+local constants = require("lib.constants")
 
 printer.print_info("Booting runner #" .. os.getComputerID())
 
@@ -152,7 +153,7 @@ wireless.router.register_handler(
     end)
 
 local function main()
-    wireless.registry.announce_at(manager_id, "runner")
+    wireless.registry.announce_at(manager_id, constants.roles.runner)
 
     while true do
         local fuel = inventory.details_from_slot(1)
@@ -255,7 +256,7 @@ local function main()
             -- Unload inventory
             inventory.drop_slots(2, 16, "down")
 
-            task_queue:ack()
+            task_queue:pop()
 
             runner_status = "Idle"
             active_task = nil

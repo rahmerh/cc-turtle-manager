@@ -2,12 +2,12 @@ local wireless = require("wireless")
 local Display = require("display")
 
 local TurtleStore = require("turtle_store")
-local JobQueue = require("job_queue")
 local Settings = require("settings")
 
 local printer = require("lib.printer")
 local time = require("lib.time")
 local string_util = require("lib.string_util")
+local queue = require("lib.queue")
 local constants = require("lib.constants")
 
 local handlers = {
@@ -16,7 +16,7 @@ local handlers = {
 }
 
 local turtle_store = TurtleStore.new()
-local job_queue = JobQueue.new()
+local job_queue = queue.new("job_queue.json")
 local settings = Settings.new()
 
 printer.print_info("Booting manager #" .. os.getComputerID())
@@ -88,10 +88,30 @@ wireless.router.register_handler(
         wireless.settings.overwrite_settings_on(sender, settings:list(), msg.id)
 
         local next_job = job_queue:peek()
-        if next_job then
-            print("QUEUE FILLED")
-        else
-            print("ESTSETS")
+        if next_job and data.role == constants.roles.runner then
+            for _ = 1, job_queue:size() do
+                local job = job_queue:peek()
+
+                if job == nil then
+                    goto continue
+                end
+
+                if job.data.job_type == constants.job_types.pickup then
+                    local dispatched_ok, _ = handlers.dispatch_pickup(job._sender, job, turtle_store)
+
+                    if dispatched_ok then
+                        job_queue:pop()
+                    end
+                elseif job.data.job_type == constants.job_types.resupply then
+                    local dispatched_ok, _ = handlers.dispatch_resupply(job._sender, job, turtle_store)
+
+                    if dispatched_ok then
+                        job_queue:pop()
+                    end
+                end
+
+                ::continue::
+            end
         end
 
         printer.print_info("New turtle registered: #" .. sender .. " '" .. data.role .. "'")

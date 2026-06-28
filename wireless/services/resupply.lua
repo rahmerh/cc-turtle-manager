@@ -1,3 +1,5 @@
+local constants = require("lib.constants")
+
 local core = require("wireless._internal.core")
 
 local resupply = {
@@ -13,6 +15,7 @@ local resupply = {
 
 function resupply.request(receiver, turtle_position, items)
     local data = {
+        job_type = constants.job_types.resupply,
         target = turtle_position,
         manifest = items
     }
@@ -33,6 +36,7 @@ end
 
 function resupply.assign(receiver, target, manifest, requested_by, request_id)
     local data = {
+        job_type = constants.job_types.resupply,
         target = target,
         manifest = manifest,
         requested_by = requested_by,

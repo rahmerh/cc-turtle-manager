@@ -1,16 +1,7 @@
 local queue = {}
 queue.__index = queue
 
-local function atomic_write(path, tbl)
-    local tmp = path .. ".tmp"
-    local f = fs.open(tmp, "w")
-    f.write(textutils.serialize(tbl))
-    f.close()
-    if fs.exists(path) then fs.delete(path) end
-    fs.move(tmp, path)
-end
-
-local function load_file(path)
+local function load(path)
     if not fs.exists(path) then return nil end
     local f = fs.open(path, "r")
     local raw = f.readAll()
@@ -18,8 +9,14 @@ local function load_file(path)
     return textutils.unserialize(raw)
 end
 
-local function persist(self)
-    atomic_write(self.file_name, { first = self.first, last = self.last, items = self.items })
+local function save(self)
+    local file = fs.open(self.file_name, "w")
+
+    local data = { items = self.items, first = self.first, last = self.last }
+
+    file.write(textutils.serialize(data))
+
+    file.close()
 end
 
 function queue.new(file_name)
@@ -30,13 +27,13 @@ function queue.new(file_name)
         file_name = file_name
     }, queue)
 
-    local data = load_file(file_name)
+    local data = load(file_name)
     if data then
         self.first = data.first or 1
         self.last  = data.last or 0
         self.items = data.items or {}
     else
-        persist(self)
+        save(self)
     end
 
     return self
@@ -53,7 +50,7 @@ end
 function queue:enqueue(item)
     self.last = self.last + 1
     self.items[self.last] = item
-    persist(self)
+    save(self)
 end
 
 function queue:peek()
@@ -61,11 +58,11 @@ function queue:peek()
     return self.items[self.first]
 end
 
-function queue:ack()
+function queue:pop()
     if self.first > self.last then return false end
     self.items[self.first] = nil
     self.first = self.first + 1
-    persist(self)
+    save(self)
     return true
 end
 
@@ -82,7 +79,7 @@ function queue:compact()
         j = j + 1
     end
     self.first, self.last = 1, j - 1
-    persist(self)
+    save(self)
 end
 
 --- Nudges an entry earlier or later in the queue.
@@ -100,7 +97,7 @@ function queue:nudge(index, direction)
 
     self.items[index], self.items[swap_with] = self.items[swap_with], self.items[index]
 
-    persist(self)
+    save(self)
     return true
 end
 
@@ -130,7 +127,7 @@ function queue:update(index, field, value)
 
     self.items[index][field] = value
 
-    persist(self)
+    save(self)
 end
 
 return queue

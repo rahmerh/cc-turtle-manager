@@ -1,3 +1,5 @@
+local constants = require("lib.constants")
+
 local core = require("wireless._internal.core")
 
 local pickup = {
@@ -10,7 +12,7 @@ local pickup = {
 
 function pickup.request(receiver, target, what)
     local data = {
-        job_type = "pickup",
+        job_type = constants.job_types.pickup,
         target = target,
         what = what,
     }
@@ -23,7 +25,7 @@ end
 
 function pickup.assign(receiver, target, what, requested_by, request_id)
     local data = {
-        job_type = "pickup",
+        job_type = constants.job_types.pickup,
         target = target,
         what = what,
         requested_by = requested_by,
