@@ -5,6 +5,7 @@ local task_stages = require("task_stages")
 
 local printer = require("lib.printer")
 local inventory = require("lib.inventory")
+local errors = require("lib.errors")
 
 return function(task, config, movement_context, report_progress)
     local filled_slots = task.filled_slots or {}
@@ -33,11 +34,21 @@ return function(task, config, movement_context, report_progress)
 
         turtle.select(2)
 
-        -- TODO: Handle if too many items requested
         for item, amount in pairs(task.manifest) do
+            ::retry::
+
             local filled_slot, fill_err = inventory.pull_items_from_down(item, amount)
-            if not filled_slot then
-                return nil, fill_err
+            if not filled_slot and fill_err == errors.ITEM_UNAVAILABLE then
+                printer.print_warning(("[%s] Requested items not available, waiting 10s until retry...")
+                    :format(task.job_id))
+
+                -- TODO: Report to manager
+
+                sleep(10)
+
+                goto retry
+            elseif not filled_slot then
+                return false, fill_err
             end
 
             table.insert(filled_slots, filled_slot)

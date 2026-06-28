@@ -65,7 +65,9 @@ The quarry turtle requires a pickaxe and modem.
     - General errors.
     - Monitor too small.
     - Multiple managers.
-- Retry failed tasks (both from turtles and manager).
+- Better fail state handling
+  - Notifications to manager dashboard
+  - Runners wait for resupply materials
 - Turtles redistribute tasks.
 - Continue quarry while waiting for supplies.
 - Improve unstuck methods + report turtle is stuck on the dashboard.

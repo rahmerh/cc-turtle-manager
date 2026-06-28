@@ -41,8 +41,12 @@ function registry.announce_at(manager_id, role, metadata)
     return nil, "no_ack"
 end
 
+--- Used to reply to a turtle registering. Method should only be used by a manager.
+---@param receiver integer id of the receiving computer.
+---@param reply_to integer the id of the message it's replying to.
 function registry.accept(receiver, reply_to)
     local payload = core.create_payload(registry.operations.accepted, nil, reply_to)
+
     core.send(receiver, payload, core.protocols.registry)
 end
 

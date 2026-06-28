@@ -90,6 +90,7 @@ wireless.router.register_handler(
         task_queue:enqueue(task)
 
         wireless.pickup.accept(sender, m.id)
+
         printer.print_info(("[%s] Queued task 'pickup'"):format(m.id))
     end)
 
@@ -109,6 +110,7 @@ wireless.router.register_handler(
         task_queue:enqueue(task)
 
         wireless.resupply.accept(sender, m.id)
+
         printer.print_info(("[%s] Queued task 'resupply'"):format(m.id))
     end)
 
