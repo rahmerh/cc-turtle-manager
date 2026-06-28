@@ -74,12 +74,12 @@ function task_runner:loop()
             local fn = self.handlers[item.task]
             if not fn then
                 printer.print_error("Invalid task: " .. item.task)
-                self.task_queue:ack()
+                self.task_queue:pop()
             else
                 local ok, res_or_err = xpcall(function() return fn(item.data) end, debug.traceback)
 
                 if ok then
-                    self.task_queue:ack()
+                    self.task_queue:pop()
                 else
                     printer.print_error(("Task '%s' failed: %s"):format(item.task, res_or_err))
                     sleep(1)

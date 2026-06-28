@@ -96,6 +96,10 @@ wireless.router.register_handler(
                     goto continue
                 end
 
+                if job._sender == sender then
+                    goto continue
+                end
+
                 if job.data.job_type == constants.job_types.pickup then
                     local dispatched_ok, _ = handlers.dispatch_pickup(job._sender, job, turtle_store)
 

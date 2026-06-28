@@ -8,26 +8,6 @@ local scanner   = require("lib.scanner")
 
 local quarry    = {}
 
-local function offset_coordinates(coordinates, direction)
-    local result = {
-        x = coordinates.x,
-        y = coordinates.y,
-        z = coordinates.z,
-    }
-
-    if direction == "north" then
-        result.z = result.z - 1
-    elseif direction == "south" then
-        result.z = result.z + 1
-    elseif direction == "east" then
-        result.x = result.x + 1
-    elseif direction == "west" then
-        result.x = result.x - 1
-    end
-
-    return result
-end
-
 function quarry.get_row_direction_for_layer(width, layer)
     if width % 2 == 1 then
         return (layer % 2 == 0) and "south" or "north"

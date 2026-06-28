@@ -31,7 +31,10 @@ Every heartbeat will update the turtle's metadata in this store.
 ## Job dispatching
 
 A manager will receive jobs from active turtles. It will then take a look at the turtles in it's store and try to dispatch it.
+When it finds multiple runners it'll dispatch the job to the one with the least jobs queued.
 
+If it couldn't dispatch because there are no runners available, it'll maintain a local queue. 
+Whenever a runner registers it'll dispatch all queued jobs to this turtle.
 
 ## Turtle actions
 
