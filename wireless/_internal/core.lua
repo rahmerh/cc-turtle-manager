@@ -1,5 +1,6 @@
 local time = require("lib.time")
 local errors = require("lib.errors")
+local debug = require("lib.debug")
 
 local _private = {}
 local core = {
@@ -37,10 +38,20 @@ function core.open()
     return rednet.isOpen()
 end
 
-function core.send(receiver, payload, protocol)
+--- Sends a message to another turtle or computer using the given protocol.
+---@param receiver integer the id of the receiver.
+---@param payload table the message/data to send.
+---@param operation string the operation of the message.
+---@param protocol string the protocol to send the message on.
+function core.send(receiver, payload, operation, protocol)
+    payload.operation = operation
+
     rednet.send(receiver, payload, protocol)
 end
 
+--- Receives a message, will poll after every timeout
+---@param timeout_seconds integer seconds to wait between polls.
+---@return table message the message received
 function core.receive(timeout_seconds)
     return rednet.receive(nil, timeout_seconds)
 end

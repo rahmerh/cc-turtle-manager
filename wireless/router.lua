@@ -1,6 +1,7 @@
 local core = require("wireless._internal.core")
 
 local printer = require("lib.printer")
+local debug = require("lib.debug")
 
 local router = {
     _handlers = {},
@@ -33,26 +34,14 @@ end
 ---@param timeout_seconds integer amount of seconds for each "receive message" poll
 local function step(timeout_seconds)
     local sender, msg, protocol = core.receive(timeout_seconds)
-    if not sender or type(msg) ~= "table" then
-        return false
-    end
 
-    if msg.id then
-        core.stash_response(sender, msg, protocol)
-    end
-
-    if type(msg.operation) ~= "string" then
+    if not sender or type(msg) ~= "table" or type(msg.operation) ~= "string" then
         return false
     end
 
     local handler = router._handlers[msg.operation]
 
-    -- No handler registered for operation.
-    if not handler then
-        return false
-    end
-
-    if not handler.protocol or handler.protocol ~= protocol then
+    if not handler or handler.protocol or handler.protocol ~= protocol then
         return false
     end
 
@@ -60,6 +49,8 @@ local function step(timeout_seconds)
 
     if not ok then
         printer.print_error("Handler crash: " .. tostring(response))
+
+        return false
     elseif response and error == nil then
         return true
     end
